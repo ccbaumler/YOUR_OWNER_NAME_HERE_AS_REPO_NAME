@@ -1,0 +1,42 @@
+name: Step 2 – Markdown challenge
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  step_2:
+    if: github.event.issue.pull_request == null
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read current step
+        id: step
+        run: |
+          STEP=$(cat .github/steps/-step.txt)
+          echo "step=$STEP" >> $GITHUB_OUTPUT
+
+      - name: Validate Markdown comment
+        if: ${{ steps.step.outputs.step == '2' }}
+        env:
+          COMMENT: ${{ github.event.comment.body }}
+        run: |
+
+
+          # Success → add Step 2 instructions as a comment
+          gh issue comment "${{ github.event.issue.number }}" \
+            --body "✅ Step 1 complete! Here’s Step 2:\n\n$(cat .github/steps/step-2.md)"
+
+          # Update step counter
+          echo "2" > .github/steps/-step.txt
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -am "Advance to Step 2"
+          git push
+
